@@ -14,7 +14,7 @@ import { Server, Socket } from 'socket.io';
   cors: {
     origin: [
       'https://hoppscotch.io',
-      'http://localhost:4200',
+      'http://192.168.56.103:3000',
       'http://localhost:3001',
     ],
   },
