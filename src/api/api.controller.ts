@@ -7,29 +7,10 @@ import { UpdateApiDto } from './dto/update-api.dto';
 export class ApiController {
   constructor(private readonly apiService: ApiService) {}
 
-  @Post()
-  create(@Body() createApiDto: CreateApiDto) {
-    return this.apiService.create(createApiDto);
-  }
-
   @Get()
   findAll() {
     console.log('find All');
     return this.apiService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.apiService.findOne(+id);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateApiDto: UpdateApiDto) {
-    return this.apiService.update(+id, updateApiDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.apiService.remove(+id);
-  }
 }

@@ -4,11 +4,18 @@ import {
   MessageBody,
   OnGatewayConnection,
   WebSocketServer,
+  OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { SocketsService } from './sockets.service';
-import { CreateSocketDto } from './dto/create-socket.dto';
 import { Server, Socket } from 'socket.io';
-//import { UpdateSocketDto } from './dto/update-socket.dto';
+
+interface Message {
+  id: string;
+  user: string;
+  text: string;
+  timestamp: Date;
+  roomId?: string;
+}
 
 @WebSocketGateway({
   cors: {
@@ -19,34 +26,35 @@ import { Server, Socket } from 'socket.io';
     ],
   },
 })
-export class SocketsGateway implements OnGatewayConnection {
+export class SocketsGateway implements OnGatewayConnection, OnGatewayDisconnect  {
 
   @WebSocketServer()
   server: Server;
 
   constructor(private readonly socketsService: SocketsService) {}
 
+  handleConnection(client: Socket) {
+    const token = client.handshake.headers.authentication as string;
+    const [type, id] = token.split(' ') ?? [];
 
-  @SubscribeMessage('createSocket')
-  create(@MessageBody() createSocketDto: CreateSocketDto) {
-    console.log('Create');
-    return this.socketsService.create(createSocketDto);
+    console.log(`Cliente conectado ${client.id} | Cliente ${id}`);
+    this.socketsService.registerClient(client, id);
   }
 
-  handleConnection() {
+  handleDisconnect(client: Socket) {
+    console.log(`Cliente ${client.id} desconectado.`);
+    this.socketsService.removeClient(client.id);
+  }
 
-    this.server.on('connection', (socket: Socket) => {
-      console.log('A client connected');
-    
-      socket.on('chat message', (msg) => {
-        console.log('Message received:', msg);
-        this.server.emit('chat message', msg); // Broadcast the message to all connected clients
-      });
-    
-      socket.on('disconnect', () => {
-        console.log('A client disconnected');
-      });
-    });
+  @SubscribeMessage('unirmeAlGrupo')
+  handleGroup(client: Socket, grupo: string){
+    client.join(grupo);
+  }
+
+  @SubscribeMessage('chat message')
+  handleMessage(client: Socket, data: any) {
+    const clientes = this.socketsService.getConnectedClients();
+    client.to(data.room).emit('chat message', data.message); 
   }
 
 }

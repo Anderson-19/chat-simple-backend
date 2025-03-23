@@ -1,26 +1,50 @@
 import { Injectable } from '@nestjs/common';
 import { CreateSocketDto } from './dto/create-socket.dto';
 import { UpdateSocketDto } from './dto/update-socket.dto';
+import { Socket } from 'socket.io';
+
+interface ConnectedClients {
+  [id: string]: {
+      socket: Socket,
+      userId?: any//User
+  }
+}
 
 @Injectable()
 export class SocketsService {
-  create(createSocketDto: CreateSocketDto) {
-    return 'This action adds a new socket';
-  }
 
-  findAll() {
-    return `This action returns all sockets`;
-  }
+  private connectedClients: ConnectedClients = {};
 
-  findOne(id: number) {
-    return `This action returns a #${id} socket`;
-  }
+  async registerClient( client: Socket, userId?: string ) {
 
-  update(id: number, updateSocketDto: UpdateSocketDto) {
-    return `This action updates a #${id} socket`;
-  }
+    this.connectedClients[client.id] = { socket: client, userId };
+}
 
-  remove(id: number) {
-    return `This action removes a #${id} socket`;
-  }
+
+removeClient( clientId: string ) {
+    delete this.connectedClients[clientId];
+}
+
+
+getConnectedClients(): ConnectedClients {
+  //return Object.keys( this.connectedClients );
+  return this.connectedClients;
+}
+
+
+
+/* private checkUserConnection( user: any ) {
+
+    for (const clientId of Object.keys( this.connectedClients ) ) {
+        
+        const connectedClient = this.connectedClients[clientId];
+
+        if ( connectedClient.user.id === user.id ){
+            connectedClient.socket.disconnect();
+            break;
+        }
+    }
+
+} */
+
 }
